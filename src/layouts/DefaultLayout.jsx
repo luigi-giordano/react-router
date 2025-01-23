@@ -13,11 +13,6 @@ const DefaultLayout = () => {
         <Outlet />
 
       </main>
-      <footer>
-
-        FOOTER
-
-      </footer>
     </>
   )
 }
