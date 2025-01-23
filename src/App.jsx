@@ -1,9 +1,9 @@
-
+import { BrowserRouter, Routes, Route } from "react-router-dom"
 const App = () => {
   return (
-    <div>
-      <App />
-    </div>
+    <>
+      <h1>App</h1>
+    </>
   )
 }
 
