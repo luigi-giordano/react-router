@@ -14,25 +14,23 @@ const PostsPage = () => {
     published: false,
   };
 
+  const [articleList, setArticleList] = useState([]);
+
+  //chiamare l'api e aggiornare 
+  const fetchArticles = () => {
+    axios.get('http://localhost:3001/posts/')
+      .then(res => {
+        setArticleList(res.data);
+      })
+      .catch(err => {
+        console.error('Errore durante il recupero degli articoli:', err);
+      });
+  }
   const [formData, setFormData] = useState(defaultArticleData);
-  const [articleList, setArticleList] = useState([
-    {
-      title: 'Acquisti in fumetteria',
-      content: 'Comprare manga e fumetti preferiti.',
-      category: 'Hobby',
-      tags: ['Tempo libero', 'Shopping'],
-      image: '',
-      published: true,
-    },
-    {
-      title: 'Fare la spesa',
-      content: 'Lista di alimenti e prodotti da comprare.',
-      category: 'Casa',
-      tags: ['Cibo', 'Casa'],
-      image: '',
-      published: false,
-    },
-  ]);
+
+  useEffect(() => {
+    fetchArticles()
+  }, [])
 
   const categories = ['Hobby', 'Casa', 'Lavoro', 'Studio'];
 
@@ -73,17 +71,18 @@ const PostsPage = () => {
 
     // Chiamata API per salvare il post
     axios
-      .post('http://localhost:5174/post', formData)
+      .post('http://localhost:3001/post', formData)
       .then((res) => {
-        // Aggiungi il nuovo articolo alla lista locale
-        setArticleList((prevList) => [...prevList, formData]);
-        // Resetta il form
+        console.log("Articolo inviato con successo :", res.data);
+
+        // Aggiorna la lista degli articoli con il nuovo articolo aggiunto
+        setArticleList(res.data);
+
+        // Resetta il form dopo l'invio
         setFormData(defaultArticleData);
-        // Reindirizza al nuovo post
-        navigate(`/posts/${res.data.id}`);
       })
-      .catch((error) => {
-        console.error('Errore durante la creazione del post:', error);
+      .catch((err) => {
+        console.error("Errore durante l'invio dell'articolo :", err);
       });
   };
 
@@ -191,15 +190,16 @@ const PostsPage = () => {
 
       <ul className="list-group mt-4">
         {articleList.map((article, index) => (
-          <li key={index} className="list-group-item">
-            <h5>{article.title}</h5>
-            <p>{article.content}</p>
-            <button
-              className="btn btn-danger btn-sm"
+          <li
+            key={index}
+            className="list-group-item d-flex justify-content-between align-items-center"
+          >
+            <span>{article.title}</span>
+            <img src={`http://localhost:3001${article.image}`} alt="Immagine" />
+            <i
+              className="fa-solid fa-trash pointer"
               onClick={() => handleRemoveArticle(index)}
-            >
-              Rimuovi
-            </button>
+            ></i>
           </li>
         ))}
       </ul>
