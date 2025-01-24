@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const PostsPage = () => {
+  const navigate = useNavigate();
 
   const defaultArticleData = {
     title: '',
@@ -14,11 +14,25 @@ const PostsPage = () => {
     published: false,
   };
 
-  const posts = [
-    { id: 1, title: "Post 1" },
-    { id: 2, title: "Post 2" },
-    { id: 3, title: "Post 3" },
-  ];
+  const [formData, setFormData] = useState(defaultArticleData);
+  const [articleList, setArticleList] = useState([
+    {
+      title: 'Acquisti in fumetteria',
+      content: 'Comprare manga e fumetti preferiti.',
+      category: 'Hobby',
+      tags: ['Tempo libero', 'Shopping'],
+      image: '',
+      published: true,
+    },
+    {
+      title: 'Fare la spesa',
+      content: 'Lista di alimenti e prodotti da comprare.',
+      category: 'Casa',
+      tags: ['Cibo', 'Casa'],
+      image: '',
+      published: false,
+    },
+  ]);
 
   const categories = ['Hobby', 'Casa', 'Lavoro', 'Studio'];
 
@@ -31,77 +45,51 @@ const PostsPage = () => {
     { id: 6, name: 'Tecnologia' },
   ];
 
+  useEffect(() => {
+    if (formData.published) {
+      alert('Hai selezionato "Pubblica articolo", pertanto sarà visibile al pubblico.');
+    }
+  }, [formData.published]);
 
-  const ArticleList = () => {
-    const [articleList, setArticleList] = useState([
-      {
-        title: 'Acquisti in fumetteria',
-        content: 'Comprare manga e fumetti preferiti.',
-        category: 'Hobby',
-        tags: ['Tempo libero', 'Shopping'],
-        image: '',
-        published: true,
-      },
-      {
-        title: 'Fare la spesa',
-        content: 'Lista di alimenti e prodotti da comprare.',
-        category: 'Casa',
-        tags: ['Cibo', 'Casa'],
-        image: '',
-        published: false,
-      },
-    ]);
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prevArticle) => ({
+      ...prevArticle,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
+  };
 
-    const navigate = useNavigate();
-    const baseApiUrl = 'http://localhost:5174';
-    const [formData, setFormData] = useState(defaultArticleData);
+  const handleTagChange = (tagName) => {
+    setFormData((prevArticle) => {
+      const updatedTags = prevArticle.tags.includes(tagName)
+        ? prevArticle.tags.filter((tag) => tag !== tagName)
+        : [...prevArticle.tags, tagName];
+      return { ...prevArticle, tags: updatedTags };
+    });
+  };
 
-    useEffect(() => {
-      if (formData.published) {
-        alert('Hai selezionato "Pubblica articolo", pertanto sarà visibile al pubblico.');
-      }
-    }, [formData.published]);
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-
-    const handleInputChange = (e) => {
-      const { name, value, type, checked } = e.target;
-      setFormData((prevArticle) => ({
-        ...prevArticle,
-        [name]: type === 'checkbox' ? checked : value,
-      }));
-    };
-
-
-    const handleTagChange = (tagName) => {
-      setFormData((prevArticle) => {
-        const updatedTags = prev.tags.includes(tagName)
-          ? prevArticle.tags.filter((tag) => tag !== tagName)
-          : [...prevArticle.tags, tagName];
-        return { ...prevArticle, tags: updatedTags };
+    // Chiamata API per salvare il post
+    axios
+      .post('http://localhost:5174/post', formData)
+      .then((res) => {
+        // Aggiungi il nuovo articolo alla lista locale
+        setArticleList((prevList) => [...prevList, formData]);
+        // Resetta il form
+        setFormData(defaultArticleData);
+        // Reindirizza al nuovo post
+        navigate(`/posts/${res.data.id}`);
+      })
+      .catch((error) => {
+        console.error('Errore durante la creazione del post:', error);
       });
-    };
+  };
 
-
-    const handleSubmit = (e) => {
-      e.preventDefault();
-      setArticleList((prevList) => [...prevList, formData]);
-      setFormData(defaultArticleData);
-    };
-
-
-    const handleRemoveArticle = (index) => {
-      setArticleList((prevList) => prevList.filter((_, i) => i !== index));
-    };
-  }
-
-  // chiamata in POST all'API inviando il nuovo elemento
-  axios.post(`${baseApiUrl}/post`, newPost)
-    .then(res => {
-      // resetto il form
-      setFormData(defaultArticleData)
-      //reindirizzo all'elenco dei post
-      navigate('/post/:id')
-    })
+  const handleRemoveArticle = (index) => {
+    setArticleList((prevList) => prevList.filter((_, i) => i !== index));
+  };
 
   return (
     <div className="container my-5">
@@ -202,9 +190,16 @@ const PostsPage = () => {
       </form>
 
       <ul className="list-group mt-4">
-        {posts.map((post) => (
-          <li key={post.id}>
-            <Link to={`/posts/${post.id}`}>{post.title}</Link>
+        {articleList.map((article, index) => (
+          <li key={index} className="list-group-item">
+            <h5>{article.title}</h5>
+            <p>{article.content}</p>
+            <button
+              className="btn btn-danger btn-sm"
+              onClick={() => handleRemoveArticle(index)}
+            >
+              Rimuovi
+            </button>
           </li>
         ))}
       </ul>
@@ -212,4 +207,4 @@ const PostsPage = () => {
   );
 };
 
-export default PostsPage
+export default PostsPage;
