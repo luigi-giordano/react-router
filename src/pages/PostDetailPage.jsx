@@ -23,14 +23,16 @@ const PostDetailPage = () => {
   }, [id])
 
 
-
-
-
   return (
     <div className="container">
-      <h1>{id}</h1>
-      <h1>{post.title}</h1>
-      <p>Post con ID: {post.id}</p>
+      {post !== null ?
+        <div>
+          <h1>{post.title}</h1>
+          <img src={`http://localhost:3001${post.image}`} alt="Immagine" />
+          <p>{post.content}</p>
+          <p>{post.id && `Post con ID: ${post.id}`}</p>
+        </div> : 'Id non trovato'}
+
     </div>
   );
 };
